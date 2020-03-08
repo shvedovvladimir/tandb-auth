@@ -1,15 +1,14 @@
 import { ApiModelProperty, ApiModelPropertyOptional } from '@nestjs/swagger';
 
-export class AuthErrorResponse {
+export class AccessKeyNotFoundErrorResponse {
     @ApiModelProperty({
-        default: 401,
-        example: 401,
+        default: 404,
+        example: 404,
     })
     public statusCode: number;
 
     @ApiModelProperty({enum: [
-        'AUTH', 'AUTH_NO_TOKEN', 'AUTH_TOKEN_EXPIRED', 'AUTH_TOKEN_INVALID',
-        'AUTH_TOKEN_LOCATION_MISMATCH',
+        'ACCESS_KEY_NOT_FOUND',
     ]})
     public code: string;
 

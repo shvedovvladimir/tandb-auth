@@ -9,7 +9,7 @@ CREATE SEQUENCE token_id_seq
 create table if not exists token (
     token_id bigint NOT NULL PRIMARY KEY DEFAULT nextval('token_id_seq'::regclass),
     access_key character varying(255),
-    token_value text,
+    token_value text NOT NULL,
     token_type character varying(255) DEFAULT 'SIMPLE_TOKEN',
     token_meta jsonb,
     created_at timestamp with time zone NOT NULL DEFAULT now(),

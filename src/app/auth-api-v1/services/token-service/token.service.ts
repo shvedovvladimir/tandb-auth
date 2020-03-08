@@ -8,8 +8,9 @@ import { TokenEntity } from '../../entities/typeorm/token.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IJwtService } from '../jwt/jwt.service.interface';
-import { SECONDS_IN_HOUR, MILLISECONDS_IN_SECOND } from '../../../common/constants/constants';
+import { MILLISECONDS_IN_SECOND } from '../../../common/constants/constants';
 import { InvalidTokenError } from '../../errors/invalid-token.error';
+import { IAccessKeyService } from '../access-key-service/access-keyservice.interface';
 
 @Injectable()
 export class TokenService implements ITokenService {
@@ -22,20 +23,24 @@ export class TokenService implements ITokenService {
         private readonly _logger: ILogger,
         @Inject(DI_CONSTANTS.IJwtService)
         private readonly _jwtService: IJwtService,
+        @Inject(DI_CONSTANTS.IAccessKeyService)
+        private readonly _accessKeyService: IAccessKeyService,
     ) {}
 
     public async addTokenByProvidedCredentials(providedCredentials: IProvidedCredentials): Promise<IToken> {
         this._logger.debug(this._loggerPrefix, 'Try add token by provided credentials');
 
         try {
+            const accessKeyItem = await this._accessKeyService.getAccessKey(providedCredentials.accessKey);
+
             const payload = {
-                sub: providedCredentials.accessKey,
+                sub: accessKeyItem.accessKey,
                 token_type: 'bearer',
             };
             const data = this._jwtService.generateJwt(payload);
 
             const newToken = {
-                accessKey: providedCredentials.accessKey,
+                accessKey: accessKeyItem.accessKey,
                 tokenValue: data.jwt,
                 tokenType: payload.token_type,
                 tokenMeta: {},

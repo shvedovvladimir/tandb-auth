@@ -11,13 +11,13 @@ import configuration from '../../config/configuration';
         }),
     ],
 })
-export class ApplicationModule implements NestModule {
-
+export class ApplicationModule {}/* implements NestModule {
+/*
     public configure(consumer: MiddlewareConsumer): MiddlewareConsumer | void {
         consumer
-            .apply()  // use middleware
+            // .apply()  // use middleware
             .forRoutes(
                 AuthController,
             );
     }
-}
+} */

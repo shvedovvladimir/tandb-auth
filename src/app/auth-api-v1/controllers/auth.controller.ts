@@ -20,6 +20,9 @@ import { TokenDto } from '../dto/token.dto';
 import { ITokenService, IToken } from '../services/token-service/token.interface';
 import { AccessKeyDto } from '../dto/acces-key.dto';
 import { accessKeyJoiSchema } from '../schemas/access-key.schemas';
+import { IAccessKeyService, IAccessKey } from '../services/access-key-service/access-keyservice.interface';
+import { AccessKeyResponse } from '../response/access-key.response';
+import { AccessKeyNotFoundErrorResponse } from '../response/access-key-not-found-error.response';
 
 @Controller('api')
 @ApiUseTags('Auth service api')
@@ -29,6 +32,8 @@ export class AuthController extends AbstractController {
     constructor(
         @Inject(DI_CONSTANTS.ITokenService)
         private readonly _tandbAuthProxyService: ITokenService,
+        @Inject(DI_CONSTANTS.IAccessKeyService)
+        private readonly _accessKeyService: IAccessKeyService,
     ) {
         super();
     }
@@ -53,6 +58,10 @@ export class AuthController extends AbstractController {
         type: CommonErrorResponse,
     })
     @ApiResponse({
+        status: 404,
+        type: AccessKeyNotFoundErrorResponse,
+    })
+    @ApiResponse({
         status: 401,
         type: AuthErrorResponse,
     } as any)
@@ -61,6 +70,38 @@ export class AuthController extends AbstractController {
         @Body(new JoiValidationPipe(accessKeyJoiSchema)) providedCredentials: AccessKeyDto,
     ): Promise<IToken> {
         const resp = await this._tandbAuthProxyService.addTokenByProvidedCredentials(providedCredentials);
+
+        return resp;
+    }
+
+    @Post('add-access-key')
+    @ApiBearerAuth()
+    @ApiOperation(
+        {
+            title: 'Get access token by provided credentials.',
+        },
+    )
+    @ApiResponse({
+        status: 200,
+        type: AccessKeyResponse,
+    })
+    @ApiResponse({
+        status: 400,
+        type: CredentialsErrorResponse,
+    })
+    @ApiResponse({
+        status: 500,
+        type: CommonErrorResponse,
+    })
+    @ApiResponse({
+        status: 401,
+        type: AuthErrorResponse,
+    } as any)
+    @HttpCode(HttpStatus.OK)
+    public async addAccessKey(
+        @Body(new JoiValidationPipe(accessKeyJoiSchema)) accessKey: AccessKeyDto,
+    ): Promise<IAccessKey> {
+        const resp = await this._accessKeyService.addAccessKey(accessKey.accessKey);
 
         return resp;
     }
