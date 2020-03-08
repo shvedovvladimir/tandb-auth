@@ -46,9 +46,8 @@ export class TokenEntity {
     })
     public deletedAt: Date | null;
 
-    @Column('timestamp', {
-        nullable: true,
+    @Column({
         name: 'expires_in',
     })
-    public expiresIn: Date;
+    public expiresIn: number;
 }

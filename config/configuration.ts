@@ -8,7 +8,7 @@ export default (): IConfiguration => ({
     jwt: {
         main: {
             secret: process.env.JWT_SECRET,
-            expiresIn: '7d',
+            expiresIn: 24, // in hour
         },
     },
     logger: {

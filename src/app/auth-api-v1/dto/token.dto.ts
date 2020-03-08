@@ -1,6 +1,6 @@
 import { ApiModelProperty } from '@nestjs/swagger';
 
-export class GetTokenDto {
+export class TokenDto {
     @ApiModelProperty()
-    public readonly accessKey: string;
+    public readonly accessToken: string;
 }

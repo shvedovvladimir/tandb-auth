@@ -11,7 +11,7 @@ export interface IJwtPoolConfiguration {
 
 export interface IJwtConfiguration {
     readonly secret: string;
-    readonly expiresIn: string;
+    readonly expiresIn: number;
 }
 
 export interface ISwaggerConfiguration {

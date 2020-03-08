@@ -15,7 +15,7 @@ create table if not exists token (
     created_at timestamp with time zone NOT NULL DEFAULT now(),
     updated_at timestamp with time zone NOT NULL DEFAULT now(),
     deleted_at timestamp with time zone,
-    expires_in timestamp with time zone NOT NULL
+    expires_in bigint
 );
 
 create index if not exists i__btree__token_value_idx
@@ -29,3 +29,6 @@ create index if not exists i__btree__token_deleted_at_idx
 
 create index if not exists i__btree__token_token_id_idx
 	on token (token_id);
+
+create index if not exists i__btree__token_expires_in_idx
+	on token (expires_in);

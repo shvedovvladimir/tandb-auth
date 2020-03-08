@@ -14,13 +14,12 @@ import { CredentialsErrorResponse } from '../../common/response/credentials-erro
 import { CommonErrorResponse } from '../../common/response/common-error.response';
 import { AuthErrorResponse } from '../../common/response/auth-error.response';
 import { DI_CONSTANTS } from '../di-constants';
-import {
-    ITandbAuthProxyService,
-    ITokenResponse,
-} from '../services/microservices-proxy/tandb-auth/tandb-auth.interface';
 import { JoiValidationPipe } from '../../common/pipes/joi-validation.pipe';
-import { getTokenJoiSchema } from '../schemas/get-token.schemas';
-import { GetTokenDto } from '../dto/get-token.dto';
+import { tokenJoiSchema } from '../schemas/token.schemas';
+import { TokenDto } from '../dto/token.dto';
+import { ITokenService, IToken } from '../services/token-service/token.interface';
+import { AccessKeyDto } from '../dto/acces-key.dto';
+import { accessKeyJoiSchema } from '../schemas/access-key.schemas';
 
 @Controller('api')
 @ApiUseTags('Auth service api')
@@ -28,13 +27,13 @@ import { GetTokenDto } from '../dto/get-token.dto';
 export class AuthController extends AbstractController {
 
     constructor(
-        @Inject(DI_CONSTANTS.ITandbAuthProxyService)
-        private readonly _tandbAuthProxyService: ITandbAuthProxyService,
+        @Inject(DI_CONSTANTS.ITokenService)
+        private readonly _tandbAuthProxyService: ITokenService,
     ) {
         super();
     }
 
-    @Post('get-token')
+    @Post('add-token')
     @ApiBearerAuth()
     @ApiOperation(
         {
@@ -58,11 +57,41 @@ export class AuthController extends AbstractController {
         type: AuthErrorResponse,
     } as any)
     @HttpCode(HttpStatus.OK)
-    public async getToken(
-        @Body(new JoiValidationPipe(getTokenJoiSchema)) providedCredentials: GetTokenDto,
-    ): Promise<ITokenResponse> {
-        const resp = await this._tandbAuthProxyService.getTokenByProvidedCredentials(providedCredentials);
+    public async addToken(
+        @Body(new JoiValidationPipe(accessKeyJoiSchema)) providedCredentials: AccessKeyDto,
+    ): Promise<IToken> {
+        const resp = await this._tandbAuthProxyService.addTokenByProvidedCredentials(providedCredentials);
 
         return resp;
+    }
+
+    @Post('check-token')
+    @ApiBearerAuth()
+    @ApiOperation(
+        {
+            title: 'Get check token',
+        },
+    )
+    @ApiResponse({
+        status: 200,
+    })
+    @ApiResponse({
+        status: 400,
+        type: CredentialsErrorResponse,
+    })
+    @ApiResponse({
+        status: 500,
+        type: CommonErrorResponse,
+    })
+    @ApiResponse({
+        status: 401,
+        type: AuthErrorResponse,
+    } as any)
+    @HttpCode(HttpStatus.OK)
+    public async checkToken(
+        @Body(new JoiValidationPipe(tokenJoiSchema)) tokenPayload: TokenDto,
+    ): Promise<void> {
+        const resp = await this._tandbAuthProxyService.checkToken(tokenPayload);
+        return;
     }
 }
