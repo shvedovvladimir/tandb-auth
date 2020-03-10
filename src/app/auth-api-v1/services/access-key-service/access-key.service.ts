@@ -1,6 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import * as passwordHash from 'password-hash';
-import { IAccessKeyService, IAccessKey } from './access-keyservice.interface';
+import { IAccessKeyService, IAccessKeyValue, IAccessKey } from './access-key.service.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AccessKeyEntity } from '../../entities/typeorm/access-key.entity';
@@ -20,7 +19,7 @@ export class AccessKeyService implements IAccessKeyService {
         private readonly _logger: ILogger,
     ) {}
 
-    public async addAccessKey(accessKeyValue: string): Promise<IAccessKey> {
+    public async addAccessKey(accessKeyValue: string): Promise<IAccessKeyValue> {
         this._logger.debug(this._loggerPrefix, `Try add access key`, accessKeyValue);
 
         try {
@@ -29,6 +28,7 @@ export class AccessKeyService implements IAccessKeyService {
                     .getRepository(AccessKeyEntity)
                     .createQueryBuilder()
                     .where('"access_key_value" = :accessKeyValue', {accessKeyValue})
+                    .andWhere('"deleted_at" IS NULL')
                     .getOne();
 
                 if (accessKey) {
@@ -66,6 +66,7 @@ export class AccessKeyService implements IAccessKeyService {
     public async getAccessKey(accessKeyValue: string): Promise<IAccessKey> {
         const accessKey = await this._accessKeyRepository.createQueryBuilder()
             .where('"access_key_value" = :accessKeyValue', {accessKeyValue})
+            .andWhere('"deleted_at" IS NULL')
             .getOne();
 
         if (!accessKey) {
@@ -73,6 +74,7 @@ export class AccessKeyService implements IAccessKeyService {
         }
 
         return {
+            accessKeyId: accessKey.accessKeyId,
             accessKey: accessKey.accessKeyValue,
         };
     }

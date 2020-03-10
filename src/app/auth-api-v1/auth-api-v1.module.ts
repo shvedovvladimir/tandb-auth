@@ -29,4 +29,4 @@ import { entities } from './entities/entities';
     ],
     exports: [ loggerProvider ],
 })
-export class GatewayApiV1Module { }
+export class AuthApiV1Module { }

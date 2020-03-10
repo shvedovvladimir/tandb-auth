@@ -37,8 +37,7 @@ export class JwtService implements IJwtService {
         try {
             return jwt.verify(token,  this._config.main.secret) as ITokenPayload;
         } catch (err) {
-            if (err instanceof jwt.TokenExpiredError ||
-                err instanceof jwt.JsonWebTokenError ||
+            if (err instanceof jwt.JsonWebTokenError ||
                 err instanceof jwt.NotBeforeError) {
                 throw new InvalidTokenError({ message: err.message, token });
             }

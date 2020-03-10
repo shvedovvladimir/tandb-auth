@@ -10,7 +10,8 @@ import { Repository } from 'typeorm';
 import { IJwtService } from '../jwt/jwt.service.interface';
 import { MILLISECONDS_IN_SECOND } from '../../../common/constants/constants';
 import { InvalidTokenError } from '../../errors/invalid-token.error';
-import { IAccessKeyService } from '../access-key-service/access-keyservice.interface';
+import { IAccessKeyService, IAccessKeyId } from '../access-key-service/access-key.service.interface';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class TokenService implements ITokenService {
@@ -34,7 +35,7 @@ export class TokenService implements ITokenService {
             const accessKeyItem = await this._accessKeyService.getAccessKey(providedCredentials.accessKey);
 
             const payload = {
-                sub: accessKeyItem.accessKey,
+                sub: accessKeyItem.accessKeyId,
                 token_type: 'bearer',
             };
             const data = this._jwtService.generateJwt(payload);
@@ -66,30 +67,40 @@ export class TokenService implements ITokenService {
         }
     }
 
-    public async checkToken(tokenPayload: IToken): Promise<void> {
-        this._logger.debug(this._loggerPrefix, 'check token', tokenPayload);
+    public async getAccessKeyIdByToken(tokenPayload: IToken): Promise<IAccessKeyId> {
+        this._logger.debug(this._loggerPrefix, 'try get accessKeyId by provided token', tokenPayload);
         const verifiedToken = this._jwtService.checkToken(tokenPayload.accessToken);
+        let token: TokenEntity = null;
 
         try {
-            const token = await this._tokenRepository.createQueryBuilder()
+            token = await this._tokenRepository.createQueryBuilder()
                 .where('"token_value" = :token', { token: tokenPayload.accessToken })
                 .andWhere('"deleted_at" IS NULL')
                 .getOne();
+
+            if (!token) {
+                this._logger.error(this._loggerPrefix, `Token not found`, tokenPayload);
+
+                throw new InvalidTokenError({ message: 'Token not found', verifiedToken });
+            }
 
             if (
                 Number(verifiedToken.exp) !== Number(token.expiresIn) ||
                 Number(token.expiresIn) < Math.floor(Date.now() / MILLISECONDS_IN_SECOND)
             ) {
-                this._logger.error(
-                    this._loggerPrefix,
-                    `Token expired`,
-                    tokenPayload,
-                );
+                this._logger.error(this._loggerPrefix, `Token expired`, tokenPayload);
+                await this._tokenRepository
+                    .update(
+                        { tokenId: token.tokenId },
+                        { deletedAt: new Date() },
+                    );
 
                 throw new InvalidTokenError({ message: 'Token expired', verifiedToken });
             }
 
-            return;
+            return {
+                accessKeyId: Number(verifiedToken.sub),
+            };
         } catch (err) {
             this._logger.error(
                 this._loggerPrefix,
@@ -97,6 +108,13 @@ export class TokenService implements ITokenService {
                 tokenPayload,
                 err.message,
             );
+            if (err instanceof jwt.TokenExpiredError && token.tokenId) {
+                await this._tokenRepository
+                    .update(
+                        { tokenId: token.tokenId },
+                        { deletedAt: new Date() },
+                    );
+            }
 
             throw err;
         }

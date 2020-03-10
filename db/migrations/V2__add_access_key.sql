@@ -15,10 +15,12 @@ create table if not exists access_key (
 );
 
 create index if not exists i__btree__access_key_access_key_id_idx
-	on access_key (access_key_id);
+	on access_key (access_key_id)
+	where (deleted_at IS NULL);
 
 create index if not exists i__btree__access_key_access_key_value_idx
-	on access_key (access_key_value);
+	on access_key (access_key_value)
+	where (deleted_at IS NULL);
 
 create index if not exists i__btree__access_key_deleted_at_idx
 	on access_key (deleted_at);

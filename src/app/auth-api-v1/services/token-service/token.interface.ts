@@ -1,6 +1,8 @@
+import { IAccessKeyId } from '../access-key-service/access-key.service.interface';
+
 export interface ITokenService {
     addTokenByProvidedCredentials(providedCredentials: IProvidedCredentials): Promise<IToken>;
-    checkToken(tokenPayload: IToken): Promise<void>;
+    getAccessKeyIdByToken(tokenPayload: IToken): Promise<IAccessKeyId>;
 }
 
 export interface IProvidedCredentials {

@@ -19,16 +19,20 @@ create table if not exists token (
 );
 
 create index if not exists i__btree__token_value_idx
-	on token (token_value);
+	on token (token_value)
+	where (deleted_at IS NULL);
 
 create index if not exists i__btree__token_access_key_idx
-	on token (access_key);
+	on token (access_key)
+	where (deleted_at IS NULL);
 
 create index if not exists i__btree__token_deleted_at_idx
 	on token (deleted_at);
 
 create index if not exists i__btree__token_token_id_idx
-	on token (token_id);
+	on token (token_id)
+	where (deleted_at IS NULL);
 
 create index if not exists i__btree__token_expires_in_idx
-	on token (expires_in);
+	on token (expires_in)
+	where (deleted_at IS NULL);

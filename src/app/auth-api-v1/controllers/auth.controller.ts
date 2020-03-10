@@ -6,6 +6,8 @@ import {
     Inject,
     Injectable,
     Body,
+    Get,
+    Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiUseTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AbstractController } from '../../common/controller/abstract.controller';
@@ -18,11 +20,12 @@ import { JoiValidationPipe } from '../../common/pipes/joi-validation.pipe';
 import { tokenJoiSchema } from '../schemas/token.schemas';
 import { TokenDto } from '../dto/token.dto';
 import { ITokenService, IToken } from '../services/token-service/token.interface';
-import { AccessKeyDto } from '../dto/acces-key.dto';
+import { AccessKeyDto } from '../dto/access-key.dto';
 import { accessKeyJoiSchema } from '../schemas/access-key.schemas';
-import { IAccessKeyService, IAccessKey } from '../services/access-key-service/access-keyservice.interface';
+import { IAccessKeyService, IAccessKeyId, IAccessKeyValue } from '../services/access-key-service/access-key.service.interface';
 import { AccessKeyResponse } from '../response/access-key.response';
 import { AccessKeyNotFoundErrorResponse } from '../response/access-key-not-found-error.response';
+import { AccessKeyIdResponse } from '../response/access-key-id.response';
 
 @Controller('api')
 @ApiUseTags('Auth service api')
@@ -100,13 +103,13 @@ export class AuthController extends AbstractController {
     @HttpCode(HttpStatus.OK)
     public async addAccessKey(
         @Body(new JoiValidationPipe(accessKeyJoiSchema)) accessKey: AccessKeyDto,
-    ): Promise<IAccessKey> {
+    ): Promise<IAccessKeyValue> {
         const resp = await this._accessKeyService.addAccessKey(accessKey.accessKey);
 
         return resp;
     }
 
-    @Post('check-token')
+    @Get('access-key-id-by-token')
     @ApiBearerAuth()
     @ApiOperation(
         {
@@ -115,6 +118,7 @@ export class AuthController extends AbstractController {
     )
     @ApiResponse({
         status: 200,
+        type: AccessKeyIdResponse,
     })
     @ApiResponse({
         status: 400,
@@ -130,9 +134,10 @@ export class AuthController extends AbstractController {
     } as any)
     @HttpCode(HttpStatus.OK)
     public async checkToken(
-        @Body(new JoiValidationPipe(tokenJoiSchema)) tokenPayload: TokenDto,
-    ): Promise<void> {
-        const resp = await this._tandbAuthProxyService.checkToken(tokenPayload);
-        return;
+        @Query(new JoiValidationPipe(tokenJoiSchema)) tokenPayload: TokenDto,
+    ): Promise<IAccessKeyId> {
+        const resp = await this._tandbAuthProxyService.getAccessKeyIdByToken(tokenPayload);
+
+        return resp;
     }
 }
